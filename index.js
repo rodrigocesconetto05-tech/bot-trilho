@@ -1,5 +1,9 @@
 const { Client } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
+const express = require('express');
+
+const app = express();
+let ultimoQRCode = '';
 
 const gruposMonitorados = [
     'Anotações Aulas',
@@ -7,7 +11,24 @@ const gruposMonitorados = [
     'Meus Materiais'
 ];
 
-const padroesNegar = [/*... (mesmos que você já usa, pode colar aqui) ...*/];
+const padroesNegar = [
+    /pass(ei|ou|ando)?\s+(meu|o)?\s*(plant[aã]o)?\s*(do|da|das)?\s*\d{1,2}([h:-]\d{1,2})?\s*(para|pra|pro|com)\s+(@?\w+)/i,
+    /pass(ei|ou|ando)?\s+(o|meu)?\s*plant[aã]o\s+(para|pra|pro|com)\s+@?\w+/i,
+    /pass(ei|ou|ando)?\s+(na|no|em|a[ií]|l[\u00e1a])/i,
+    /\bpegou\b.*(@?\w+)?/i,
+    /plant[aã]o.*(ficou|vai|será|pego|pegou)/i,
+    /\bficou com\b.*/i,
+    /passado para\s+@?\w+/i,
+    /\bficou (pra|pro)\b.*/i,
+    /\bj[aá] (foi|peguei|pegaram|passaram|vai|vai fazer|vai cobrir)\b/i,
+    /algu[eé]m (pegou|vai fazer|ficou com)/i,
+    /\bdivid[ií] com\b.*/i,
+    /n[oã]o vou poder.*/i,
+    /vai fazer o meu.*(plant[aã]o)?/i,
+    /@\w+ (vai fazer|ficou|pegou|assumiu)/i,
+    /pass(ei|ou|ando)?\s*(plant[aã]o)?\s*(do|dia)?\s*\d{1,2}(\s+)?(para|pra|pro|com)\s+@?\w+/i,
+    /pass(ei|ou|ando)?\s+(das|da|do)?\s*\d{1,2}[-h:]\d{1,2}\s+(para|pra|pro|com)\s+(@?\w+)/i
+];
 
 const padraoPego = new RegExp([
     'pass(o|ando)?(\\s+(meu|o))?(\\s+plant[aã]o)?(\\s+(hoje|amanh[aã]|dia\\s+\\d{1,2}|noturno|diurno|\\d{1,2}[h:]\\d{2}))?',
@@ -31,6 +52,7 @@ function deveResponder(msg) {
         }
         return 'Pego';
     }
+
     return false;
 }
 
@@ -41,10 +63,9 @@ const client = new Client({
     }
 });
 
-client.on('qr', (qr) => {
-    qrcode.toString(qr, { type: 'terminal' }, (err, url) => {
-        console.log('QR Code para login:\n', url);
-    });
+client.on('qr', async (qr) => {
+    ultimoQRCode = await qrcode.toDataURL(qr);
+    console.log('QR Code gerado! Acesse /qr para escanear.');
 });
 
 client.on('ready', () => {
@@ -73,7 +94,7 @@ client.on('message', async msg => {
                 const padraoJaResponderam = /\b(pego|peguei|assumo|vou|eu faço|eu pego|eu vou|eu)\b/i;
 
                 if (depois.some(m => padraoJaResponderam.test(m.body))) {
-                    console.log('Já responderam após a oferta.');
+                    console.log('Já houve resposta após a oferta.');
                     return;
                 }
             }
@@ -89,4 +110,20 @@ client.on('message', async msg => {
 });
 
 client.initialize();
+
+// 🚀 Servidor Express para exibir o QR no navegador
+app.get('/qr', (req, res) => {
+    if (!ultimoQRCode) return res.send('QR ainda não gerado...');
+    res.send(`
+        <html><body style="text-align:center">
+        <h2>Escaneie o QR abaixo com o WhatsApp</h2>
+        <img src="${ultimoQRCode}" width="300" height="300"/>
+        </body></html>
+    `);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor web rodando em http://localhost:${PORT}/qr`);
+});
 
