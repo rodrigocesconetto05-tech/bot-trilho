@@ -1,0 +1,19 @@
+const { Client, LocalAuth, Buttons, MessageMedia } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+
+const gruposMonitorados = [
+  "Anotações Aulas",
+  "Plantões Clínica",
+  "Cirurgia Geral"
+];
+
+// Palavras-chave e respostas
+const padroesNegar = [
+  /pass(ei|ou).*pra?\s+\w+/i,
+  /planSave modified buffer? (Answering "No" will DISCARD changes)
+ Y Yes
+ N No
+ ^C Cancel
+cd ~/Documents/bot-plantao-whatsapp
+
+

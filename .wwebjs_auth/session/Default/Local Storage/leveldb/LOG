@@ -1,0 +1,9 @@
+2025/07/30-15:58:38.505 213a95 Reusing MANIFEST /Users/rodrigocesconetto/Documents/bot-plantao-whatsapp/.wwebjs_auth/session/Default/Local Storage/leveldb/MANIFEST-000001
+2025/07/30-15:58:38.509 213a95 Recovering log #25
+2025/07/30-15:58:38.509 213a95 Reusing old log /Users/rodrigocesconetto/Documents/bot-plantao-whatsapp/.wwebjs_auth/session/Default/Local Storage/leveldb/000025.log 
+2025/07/30-17:17:21.675 213a97 Level-0 table #30: started
+2025/07/30-17:17:21.678 213a97 Level-0 table #30: 16505 bytes OK
+2025/07/30-17:17:21.682 213a97 Delete type=0 #25
+2025/07/30-21:49:04.287 213a97 Level-0 table #32: started
+2025/07/30-21:49:04.291 213a97 Level-0 table #32: 16665 bytes OK
+2025/07/30-21:49:04.296 213a97 Delete type=0 #29
