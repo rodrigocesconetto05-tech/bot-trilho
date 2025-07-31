@@ -18,6 +18,10 @@ RUN apt-get update && apt-get install -y \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
+    libdrm2 \
+    libxshmfence1 \
+    libgbm1 \
+    libxcb-dri3-0 \
     xdg-utils \
     --no-install-recommends \
  && apt-get clean \
@@ -26,12 +30,12 @@ RUN apt-get update && apt-get install -y \
 # Criar diretório do app
 WORKDIR /app
 
-# Copiar arquivos
+# Copiar os arquivos para o container
 COPY . .
 
-# Instalar dependências do Node.js
+# Instalar dependências do projeto
 RUN npm install
 
-# Executar o bot
+# Rodar o bot
 CMD ["node", "index.js"]
 
