@@ -122,6 +122,7 @@ app.get('/qr', (req, res) => {
     `);
 });
 
+// 👇 Aqui está a correção com porta dinâmica para o Railway
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor web rodando em http://localhost:${PORT}/qr`);
