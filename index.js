@@ -37,14 +37,17 @@ const padraoPego = new RegExp([
     'quem\\s+(pode|consegue|topa)\\s*(fazer|cobrir|pegar|assumir)\\s*(plant[aã]o)?\\s*(hoje|amanh[aã]|dia\\s+\\d{1,2}|noturno|diurno)'
 ].join('|'), 'i');
 
-const padraoReforco = /refor[cç]o|reforcar|algu[éé]m pode ajudar|precisa de ajuda|procura refor[cç]o|dividir plant[aã]o|algu[éé]m ajuda|precisa de refor[cç]o/i;
+const padraoReforco = /\b(refor[cç]o|reforcar|precisa de refor[cç]o|ajuda com refor[cç]o|algu[eé]m pode ajudar|algu[eé]m ajuda|dividir plant[aã]o)\b.*(hoje|amanh[aã]|dia \d{1,2})?/i;
 
 function deveResponder(msg) {
     const texto = msg.toLowerCase();
     const mencaoAlvo = /(para|pra|pro|com)\s+(@?\w+)/i;
     if (texto.includes('passo') && mencaoAlvo.test(texto)) return false;
 
-    if (padraoReforco.test(texto)) return 'Posso';
+    if (padraoReforco.test(texto)) {
+        if (/(\bprecisa\b|\bdividir\b|\bajuda\b|algu[eé]m.*(ajuda|refor[cç]o)|ajudar|consegue ajudar)/.test(texto)) return 'Posso';
+        return false;
+    }
 
     if (padraoPego.test(texto)) {
         for (const padrao of padroesNegar) {
@@ -54,6 +57,25 @@ function deveResponder(msg) {
     }
 
     return false;
+}
+
+function extrairEColarMensagemOriginal(textoOriginal) {
+    const linhas = textoOriginal.split('\n');
+    let contagem = 0;
+    const resultado = linhas.map(linha => {
+        if (/\d{1,2}\/\d{1,2}.*\d{1,2}[-h:]\d{2}h/.test(linha) && contagem < 2) {
+            contagem++;
+            return linha + ' (Rodrigo)';
+        }
+        return linha;
+    }).join('\n');
+    return resultado;
+}
+
+function contemPadraoCopiaCola(texto) {
+    const padraoCabecalho = /(plant[aõ]es?|escalas?|dispon[ií]veis?).*\b(pa|hospital|upa)?\b/i;
+    const padraoLinhaDataHorario = /\d{1,2}\/\d{1,2}.*?(\d{1,2}([h:-]\d{2})|às \d{1,2}h)/i;
+    return padraoCabecalho.test(texto) && padraoLinhaDataHorario.test(texto);
 }
 
 const client = new Client({
@@ -76,6 +98,13 @@ client.on('message', async msg => {
     try {
         const chat = await msg.getChat();
         if (chat.isGroup && gruposMonitorados.includes(chat.name)) {
+            const textoMsg = msg.body.toLowerCase();
+            if (contemPadraoCopiaCola(textoMsg)) {
+                const resposta = extrairEColarMensagemOriginal(msg.body);
+                await chat.sendMessage(resposta);
+                return;
+            }
+
             const resposta = deveResponder(msg.body);
             if (resposta === 'Pego') {
                 const mensagens = await chat.fetchMessages({ limit: 50 });
@@ -111,7 +140,6 @@ client.on('message', async msg => {
 
 client.initialize();
 
-// 🚀 Servidor Express para exibir o QR no navegador
 app.get('/qr', (req, res) => {
     if (!ultimoQRCode) return res.send('QR ainda não gerado...');
     res.send(`
@@ -122,7 +150,6 @@ app.get('/qr', (req, res) => {
     `);
 });
 
-// 👇 Aqui está a correção com porta dinâmica para o Railway
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor web rodando em http://localhost:${PORT}/qr`);
